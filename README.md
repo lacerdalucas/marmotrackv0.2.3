@@ -1,18 +1,42 @@
 # MarmoTrack
 
-Sistema de gestão operacional para marmoraria.
+MarmoTrack é um sistema web abrangente em desenvolvimento para o gerenciamento operacional e comercial de marmorarias. Ele visa unificar em uma única plataforma, desde a criação do orçamento, passando pela aprovação comercial, agendamento de medição (PCP), acompanhamento de projetos e etapa de produção, até a entrega.
 
-## Fase atual
-Definição da arquitetura inicial e geração da base do aplicativo.
+## 🚀 Versão Atual: **v0.2.0 - Módulos Comercial e de Medição (PCP)**
 
-## Documentos principais
-- docs/PROJECT_BRIEF.md
-- docs/project-context.md
-- docs/constitution.md
+### Stack Tecnológico
+- **Framework:** Next.js 15 (App Router)
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS + Lucide Icons
+- **Backend/Banco de Dados:** Supabase (PostgreSQL)
+- **Validações:** Zod + React Hook Form
 
-## Objetivo imediato
-Gerar:
-1. arquitetura do sistema
-2. schema inicial do banco
-3. frontend base
-4. backlog do MVP
+## 🌟 Funcionalidades Principais (Até o momento)
+
+- **Autenticação e Perfis:** Login seguro e controle de permissões em níveis (Administradores, Vendedores, Medidores, etc.).
+- **Módulo Comercial (Pedidos):**
+  - Criação de Orçamentos com numeração única sequencial.
+  - Conversão de Orçamentos em Pedidos Aprovados.
+  - Identificação de Urgência e Datas Prometidas.
+  - Sistema de "Soft Delete" seguro com auditoria de motivo para descarte de pedidos, reciclando e liberando o número de orçamento original.
+- **Auditoria de Eventos (Event Sourcing):** Timeline detalhada para cada pedido, rastreando mudanças de status, aprovações, edições e exclusões com o respectivo usuário responsável.
+- **Fila de Medições (PCP - Planejamento e Controle da Produção):**
+  - Integração Automática: Pedidos recém-aprovados entram dinamicamente na fila como pendentes de medição.
+  - Alertas Visuais: Sistema avisa de forma visual quando um pedido aprovado por algum motivo se encontra sem agenda ou teve sua medição cancelada.
+  - Filtros avançados na fila (Ativas, Concluídas, Canceladas, Todas).
+- **Agenda Acadêmica de Medição:**
+  - Gerenciador customizado para atribuição de medidores, datas, horários e observações operacionais.
+
+## 🛠 Como Executar Localmente
+
+\`\`\`bash
+# Instalar dependências
+npm install
+
+# Rodar o servidor de desenvolvimento
+npm run dev
+\`\`\`
+*Nota: É necessário possuir as credenciais do Supabase configuradas no arquivo `.env.local`.*
+
+## 📄 Licença
+Projeto Privado. Todos os direitos reservados.

@@ -1,69 +1,175 @@
-// app/(dashboard)/agenda/page.tsx
-// Tela Web do PCP: Agenda de Medições.
-
 import React from 'react';
+import { createClient } from '@/lib/supabase/server';
+import ModalWrapper from './ModalWrapper'; // We will create this small client wrapper
+import { CalendarDays, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-export default function AgendaPage() {
-    // Mock Data: Na vida real -> supabase.from('measurement_visits').select('*, projects(customer_name, erp_reference), users_profile(full_name)')
-    const mockVisits = [
-        { id: 'visit-1', project_ref: 'OS-1050', customer_name: 'Residencial Alpha', measurer_name: 'João Silva', date: '10/03/2026 14:00', status: 'SCHEDULED', notes: 'Levar trena a laser nova.' },
-        { id: 'visit-2', project_ref: 'OS-1042', customer_name: 'Dona Maria', measurer_name: 'Marcos (Técnico)', date: '12/03/2026 09:00', status: 'COMPLETED', notes: '', field_notes: 'Canto fora de esquadro, aumentar 2cm no frontão.' }
-    ];
+export default async function AgendaPage() {
+    const supabase = await createClient();
+
+    // 1. Busca Medições Reais já Agendadas/Concluidas para a Tabela
+    const { data: medicoesData, error } = await supabase
+        .from('medicoes_v2')
+        .select(`
+            id,
+            pedido_id,
+            status,
+            data_agendada,
+            pendencias_obra,
+            responsavel_id,
+            pedidos_v2(cliente_nome, endereco_obra),
+            users_profile:responsavel_id(full_name)
+        `)
+        .order('data_agendada', { ascending: true, nullsFirst: false });
+
+    // 2. Busca todos os pedidos Aprovados para encontrar os Pendentes de Agendamento
+    const { data: pedidosAprovados } = await supabase
+        .from('pedidos_v2')
+        .select(`
+            id,
+            cliente_nome,
+            endereco_obra,
+            clientes(nome),
+            medicoes_v2(id, status)
+        `)
+        .eq('status_comercial', 'Aprovado');
+
+    // Pega todos os técnicos (Para popular o select do modal)
+    const { data: tecnicosData } = await supabase
+        .from('users_profile')
+        .select('id, full_name, roles!inner(name)')
+        .eq('roles.name', 'medidor')
+        .eq('active', true);
+
+    const medicoes = medicoesData || [];
+    const tecnicos = tecnicosData || [];
+
+    // 3. Filtra pedidos Aprovados que possuem Medição Ativa (PENDENTE ou Agendada)
+    const pendentes = (pedidosAprovados || [])
+        .filter((p: any) => {
+            if (!p.medicoes_v2 || p.medicoes_v2.length === 0) return false;
+            
+            // Aceita pedidos onde exista pelo menos uma medição 'PENDENTE' ou 'Agendada'
+            const arrayMedicoes = Array.isArray(p.medicoes_v2) ? p.medicoes_v2 : [p.medicoes_v2];
+            return arrayMedicoes.some((m: any) => m.status === 'PENDENTE' || m.status === 'Agendada');
+        })
+        .map((p: any) => {
+            const clienteReal = p.clientes?.nome || p.cliente_nome;
+            // Pegamos a ID da medição ativa para mandar ao Modal
+            const arrayMedicoes = Array.isArray(p.medicoes_v2) ? p.medicoes_v2 : [p.medicoes_v2];
+            const medicaoAtiva = arrayMedicoes.find((m: any) => m.status === 'PENDENTE' || m.status === 'Agendada');
+
+            // Passamos tambem o status para indicar no select options futuramente se desejar
+            return {
+                id: medicaoAtiva?.id || p.id, 
+                pedido_id: p.id,
+                cliente_nome: clienteReal || 'Sem Nome',
+                endereco_obra: p.endereco_obra || '',
+                statusAtual: medicaoAtiva?.status
+            };
+        });
+
+    // Filtra as agendadas ou finalizadas para exibir na tabela principal
+    const agendaList = medicoes;
 
     return (
-        <div className="max-w-7xl mx-auto py-8 px-4">
-            <div className="flex justify-between items-end mb-8 border-b pb-4">
+        <div className="max-w-7xl mx-auto py-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-4 border-b border-zinc-800 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Agenda de Medições</h1>
-                    <p className="text-gray-500 mt-2">Agende visitas do setor técnico para liberar o PDF da O.S. para produção física.</p>
+                    <h1 className="text-3xl font-bold text-zinc-100 flex items-center gap-3">
+                        <CalendarDays className="text-blue-500 w-8 h-8" />
+                        Agenda de Medições
+                    </h1>
+                    <p className="text-zinc-400 mt-2">Agende visitas do setor técnico para liberar o projeto para produção.</p>
                 </div>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium text-sm transition-colors shadow-sm">
-                    + Agendar Nova Medição
-                </button>
+
+                {/* Client Component que controla o estado do Modal passando os dados do servidor */}
+                <ModalWrapper medicoesPendentes={pendentes} tecnicos={tecnicos} />
             </div>
 
-            {/* Placeholder Grid de Vistas Agendadas */}
-            <div className="bg-white shadow-sm ring-1 ring-gray-200 rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+            {/* Grid de Vistas Agendadas */}
+            <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+                <table className="min-w-full divide-y divide-zinc-800">
+                    <thead className="bg-zinc-900 border-b border-zinc-800">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente / O.S.</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data & Horário</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Obra / Cliente</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Data & Horário</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Técnico/Responsável</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {mockVisits.map((visit) => (
-                            <tr key={visit.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-gray-900">{visit.customer_name}</div>
-                                    <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider bg-gray-100 inline-block px-2 py-0.5 rounded">{visit.project_ref}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                    {visit.date}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {visit.measurer_name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${visit.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                                        }`}>
-                                        {visit.status === 'COMPLETED' ? 'LIBERADA' : 'AGENDADA'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-blue-600 hover:text-blue-900 mr-4">Editar</button>
-                                    {visit.status === 'COMPLETED' && (
-                                        <button className="text-gray-500 hover:text-gray-700" title={visit.field_notes}>Ver Laudo</button>
-                                    )}
+                    <tbody className="divide-y divide-zinc-800/50 bg-zinc-950/30">
+                        {agendaList.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-12 text-center text-sm text-zinc-500">
+                                    Nenhuma medição agendada. Clique no botão acima para começar.
                                 </td>
                             </tr>
-                        ))}
+                        ) : agendaList.map((visit: any) => {
+                            const pedido = Array.isArray(visit.pedidos_v2) ? visit.pedidos_v2[0] : visit.pedidos_v2;
+                            const profile = Array.isArray(visit.users_profile) ? visit.users_profile[0] : visit.users_profile;
+
+                            return (
+                                <tr key={visit.id} className="hover:bg-zinc-900/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-semibold text-zinc-200">{pedido?.cliente_nome || 'Desconhecido'}</div>
+                                        <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+                                            <MapPin className="w-3 h-3" /> {pedido?.endereco_obra || 'Endereço não informado'}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-300 font-medium">
+                                        {visit.data_agendada ? focusDate(visit.data_agendada) : 'A Definir'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                                                {profile?.full_name?.charAt(0) || '?'}
+                                            </div>
+                                            {profile?.full_name || 'Não atribuído'}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <StatusBadge status={visit.status} />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button className="text-blue-500 hover:text-blue-400 transition-colors mr-4 p-2 hover:bg-blue-500/10 rounded-md">Reagendar</button>
+                                        {(visit.status === 'Concluida' || visit.status === 'Frustrada') && (
+                                            <button className="text-zinc-400 hover:text-zinc-200 p-2 hover:bg-zinc-800 rounded-md transition-colors" title={visit.pendencias_obra}>Relato</button>
+                                        )}
+                                    </td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
             </div>
         </div>
     );
+}
+
+// Helpers
+
+function focusDate(isoString: string) {
+    try {
+        return format(new Date(isoString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    } catch {
+        return 'Data Inválida';
+    }
+}
+
+function StatusBadge({ status }: { status: string }) {
+    switch (status) {
+        case 'Agendada':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Agendada</span>;
+        case 'Concluida':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Concluída / Liberada</span>;
+        case 'Frustrada':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Frustrada / Pendência</span>;
+        case 'Em Andamento':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">Check-in Local</span>;
+        default:
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">{status}</span>;
+    }
 }

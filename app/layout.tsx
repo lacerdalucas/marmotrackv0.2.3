@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
     title: 'MarmoTrack',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="pt-BR">
-            <body>{children}</body>
+            <body>
+                {children}
+                <Toaster richColors position="top-right" duration={4000} />
+            </body>
         </html>
     )
 }

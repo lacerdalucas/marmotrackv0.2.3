@@ -3,7 +3,11 @@
 
 import React from 'react'
 
-export default function ReviewJobPage({ params }: { params: { job_id: string } }) {
+export default async function ReviewJobPage({ params }: { params: Promise<{ job_id: string }> }) {
+    // Aguardamos a resolução da Promise dos params no Next.js 16+
+    const resolvedParams = await params
+    const jobId = resolvedParams.job_id
+
     // Mock Data: Na vida real, seria um fetch DB da tabela 'import_job_extracted_items' atrelada ao job_id
     const mockItems = [
         { id: 1, confidence: 92, status: 'PENDING', parsed: { env: 'Cozinha', piece: 'Ilha', material: 'Preto Absoluto', dimensions: '1500 x 900' }, manualOverride: null, sourceText: '1x Cozinha - Ilha 150x90 Preto Absoluto' },
@@ -18,14 +22,14 @@ export default function ReviewJobPage({ params }: { params: { job_id: string } }
         <div className="max-w-7xl mx-auto py-8">
             <div className="flex justify-between items-end mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Revisão do Lote #{params.job_id.substring(0, 6)}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Revisão do Lote #{jobId.substring(0, 6)}</h1>
                     <p className="text-gray-500 mt-1">Valide os itens extraídos da "Orçamento 8891.pdf" antes de gerar a Ordem de Produção.</p>
                 </div>
 
                 <button
                     className={`px-6 py-2 rounded-md font-medium shadow-sm transition-colors ${hasLowConfidenceItems
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                     disabled={hasLowConfidenceItems}
                 >
@@ -61,8 +65,8 @@ export default function ReviewJobPage({ params }: { params: { job_id: string } }
                             <tr key={item.id} className={item.confidence < 70 ? 'bg-red-50' : ''}>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.confidence >= 90 ? 'bg-green-100 text-green-800' :
-                                            item.confidence >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'
+                                        item.confidence >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-red-100 text-red-800'
                                         }`}>
                                         {item.confidence}%
                                     </span>

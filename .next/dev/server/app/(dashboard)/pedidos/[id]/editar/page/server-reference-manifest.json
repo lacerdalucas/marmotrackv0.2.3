@@ -1,0 +1,20 @@
+{
+  "node": {
+    "60d477880834ffd6889b797d42ea46826169acf68f": {
+      "workers": {
+        "app/(dashboard)/pedidos/[id]/editar/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/pedidos/[id]/editar/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/pedidos_v2.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "atualizarPedidoComercial",
+          "filename": "app/actions/pedidos_v2.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/pedidos/[id]/editar/page": "action-browser"
+      },
+      "exportedName": "atualizarPedidoComercial",
+      "filename": "app/actions/pedidos_v2.ts"
+    }
+  },
+  "edge": {}
+}

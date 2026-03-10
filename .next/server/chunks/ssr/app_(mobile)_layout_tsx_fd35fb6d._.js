@@ -1,0 +1,3 @@
+module.exports=[82354,a=>{"use strict";var b=a.i(7997);function c({children:a}){return(0,b.jsxs)("div",{className:"flex bg-zinc-950 text-white min-h-screen flex-col",children:[(0,b.jsxs)("header",{className:"sticky top-0 z-50 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-950 px-4",children:[(0,b.jsx)("div",{className:"font-bold text-lg",children:"M-Track Lado Fábrica"}),(0,b.jsx)("div",{className:"text-xs text-zinc-400",children:"João (Corte)"})]}),(0,b.jsx)("main",{className:"flex-1 overflow-y-auto",children:a})]})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=app_%28mobile%29_layout_tsx_fd35fb6d._.js.map

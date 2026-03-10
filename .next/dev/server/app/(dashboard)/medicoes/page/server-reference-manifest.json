@@ -1,0 +1,20 @@
+{
+  "node": {
+    "6001bf6743b113384e820d8620aacaa782beebdd07": {
+      "workers": {
+        "app/(dashboard)/medicoes/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/medicoes/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/medicao.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "excluirMedicaoAction",
+          "filename": "app/actions/medicao.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/medicoes/page": "action-browser"
+      },
+      "exportedName": "excluirMedicaoAction",
+      "filename": "app/actions/medicao.ts"
+    }
+  },
+  "edge": {}
+}

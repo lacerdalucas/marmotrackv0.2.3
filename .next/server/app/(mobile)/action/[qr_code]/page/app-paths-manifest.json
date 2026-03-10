@@ -1,0 +1,3 @@
+{
+  "/(mobile)/action/[qr_code]/page": "app/(mobile)/action/[qr_code]/page.js"
+}

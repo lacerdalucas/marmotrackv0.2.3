@@ -43,35 +43,38 @@ export default function MobileActionPage({ params }: { params: { qr_code: string
             {/* Container de Ações Gigantes (Touch Targets 40%+) */}
             <div className="space-y-4 mb-8">
                 {isWaitingToStart && (
-                    <form action={registerPieceEventAction.bind(null, params.qr_code, 'STAGE_IN', mockPiece.current_stage_id, undefined)}>
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white h-24 rounded-2xl text-2xl font-black uppercase shadow-lg shadow-blue-900/50 active:scale-95 transition-transform"
-                        >
-                            Iniciei Aqui (Receber)
-                        </button>
-                    </form>
+                    <button
+                        onClick={async () => {
+                            'use server';
+                            await registerPieceEventAction(params.qr_code, 'STAGE_IN', mockPiece.current_stage_id, undefined);
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white h-24 rounded-2xl text-2xl font-black uppercase shadow-lg shadow-blue-900/50 active:scale-95 transition-transform"
+                    >
+                        Iniciei Aqui (Receber)
+                    </button>
                 )}
 
                 {isWorking && (
-                    <form action={registerPieceEventAction.bind(null, params.qr_code, 'STAGE_OUT', mockPiece.current_stage_id, undefined)}>
-                        <button
-                            type="submit"
-                            className="w-full bg-green-600 hover:bg-green-500 text-white h-24 rounded-2xl text-2xl font-black uppercase shadow-lg shadow-green-900/50 active:scale-95 transition-transform"
-                        >
-                            Concluí O Serviço
-                        </button>
-                    </form>
+                    <button
+                        onClick={async () => {
+                            'use server';
+                            await registerPieceEventAction(params.qr_code, 'STAGE_OUT', mockPiece.current_stage_id, undefined);
+                        }}
+                        className="w-full bg-green-600 hover:bg-green-500 text-white h-24 rounded-2xl text-2xl font-black uppercase shadow-lg shadow-green-900/50 active:scale-95 transition-transform"
+                    >
+                        Concluí O Serviço
+                    </button>
                 )}
 
-                <form action={registerPieceEventAction.bind(null, params.qr_code, 'BLOCK_REWORK', mockPiece.current_stage_id, "Reportado via Celular")}>
-                    <button
-                        type="submit"
-                        className="w-full bg-transparent border-2 border-red-900/50 text-red-500 hover:bg-red-950/30 h-16 rounded-2xl text-lg font-bold uppercase active:scale-95 transition-transform"
-                    >
-                        Reportar Defeito / Quebra
-                    </button>
-                </form>
+                <button
+                    onClick={async () => {
+                        'use server';
+                        await registerPieceEventAction(params.qr_code, 'BLOCK_REWORK', mockPiece.current_stage_id, "Reportado via Celular");
+                    }}
+                    className="w-full bg-transparent border-2 border-red-900/50 text-red-500 hover:bg-red-950/30 h-16 rounded-2xl text-lg font-bold uppercase active:scale-95 transition-transform"
+                >
+                    Reportar Defeito / Quebra
+                </button>
             </div>
         </div>
     )

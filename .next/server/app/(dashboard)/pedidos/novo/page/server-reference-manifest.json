@@ -1,0 +1,35 @@
+{
+  "node": {
+    "40a6cebfda7f848cc5560a99179b4e30fcdcf44c75": {
+      "workers": {
+        "app/(dashboard)/pedidos/novo/page": {
+          "moduleId": 78183,
+          "async": false,
+          "exportedName": "criarPedidoComercial",
+          "filename": "app/actions/pedidos_v2.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/pedidos/novo/page": "action-browser"
+      },
+      "exportedName": "criarPedidoComercial",
+      "filename": "app/actions/pedidos_v2.ts"
+    },
+    "404cd52d44e3200e4b6dacd53fc5a452f0e308aaa5": {
+      "workers": {
+        "app/(dashboard)/pedidos/novo/page": {
+          "moduleId": 78183,
+          "async": false,
+          "exportedName": "previewPdfDataAction",
+          "filename": "app/actions/parser.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/pedidos/novo/page": "action-browser"
+      },
+      "exportedName": "previewPdfDataAction",
+      "filename": "app/actions/parser.ts"
+    }
+  },
+  "edge": {}
+}

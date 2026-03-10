@@ -1,0 +1,20 @@
+{
+  "node": {
+    "40d10bf358c289821df206340affbf3a6b1b309dc1": {
+      "workers": {
+        "app/(dashboard)/agenda/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/agenda/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/medicao.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "agendarMedicaoAction",
+          "filename": "app/actions/medicao.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/agenda/page": "action-browser"
+      },
+      "exportedName": "agendarMedicaoAction",
+      "filename": "app/actions/medicao.ts"
+    }
+  },
+  "edge": {}
+}

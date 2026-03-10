@@ -10,7 +10,7 @@ export async function registerPieceEventAction(
   eventType: 'STAGE_IN' | 'STAGE_OUT' | 'BLOCK_REWORK',
   targetStageId: string,
   notes?: string
-) {
+) : Promise<{ error?: string; success?: boolean; message?: string }> {
   const supabase = await createClient()
 
   // O Server Action já possui os cookies do usurário logado (Operador) via middleware

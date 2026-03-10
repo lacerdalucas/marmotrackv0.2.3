@@ -1,0 +1,153 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/action/[qr_code]",
+      "regex": "^/action/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPqr_code": "nxtPqr_code"
+      },
+      "namedRegex": "^/action/(?<nxtPqr_code>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/import/[job_id]",
+      "regex": "^/import/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPjob_id": "nxtPjob_id"
+      },
+      "namedRegex": "^/import/(?<nxtPjob_id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/pedidos/[id]",
+      "regex": "^/pedidos/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/pedidos/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/agenda",
+      "regex": "^/agenda(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agenda(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/import",
+      "regex": "^/import(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/import(?:/)?$"
+    },
+    {
+      "page": "/issues",
+      "regex": "^/issues(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/issues(?:/)?$"
+    },
+    {
+      "page": "/kanban",
+      "regex": "^/kanban(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kanban(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/medicoes",
+      "regex": "^/medicoes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/medicoes(?:/)?$"
+    },
+    {
+      "page": "/pedidos",
+      "regex": "^/pedidos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pedidos(?:/)?$"
+    },
+    {
+      "page": "/pedidos/novo",
+      "regex": "^/pedidos/novo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pedidos/novo(?:/)?$"
+    },
+    {
+      "page": "/projetos",
+      "regex": "^/projetos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/projetos(?:/)?$"
+    },
+    {
+      "page": "/scanner",
+      "regex": "^/scanner(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/scanner(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "node": {
+    "40059c5b338d146a00489cb62918e9034412ad3a87": {
+      "workers": {
+        "app/(dashboard)/pedidos/[id]/page": {
+          "moduleId": 93933,
+          "async": false,
+          "exportedName": "aprovarPedidoAction",
+          "filename": "app/actions/medicao.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/pedidos/[id]/page": "action-browser"
+      },
+      "exportedName": "aprovarPedidoAction",
+      "filename": "app/actions/medicao.ts"
+    }
+  },
+  "edge": {}
+}

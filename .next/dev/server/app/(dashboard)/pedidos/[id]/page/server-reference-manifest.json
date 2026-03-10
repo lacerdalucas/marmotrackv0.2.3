@@ -1,0 +1,20 @@
+{
+  "node": {
+    "407e1cce73c3253b5d5b10841c5ace7ee08e0f21bd": {
+      "workers": {
+        "app/(dashboard)/pedidos/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/pedidos/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/medicao.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "aprovarPedidoAction",
+          "filename": "app/actions/medicao.ts"
+        }
+      },
+      "layer": {
+        "app/(dashboard)/pedidos/[id]/page": "action-browser"
+      },
+      "exportedName": "aprovarPedidoAction",
+      "filename": "app/actions/medicao.ts"
+    }
+  },
+  "edge": {}
+}
