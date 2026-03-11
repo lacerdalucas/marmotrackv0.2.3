@@ -1,6 +1,0 @@
-[00:00:02.324] Server  LOG     ✓ Ready in 1675ms
-[00:00:07.721] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:03:50.189] Server  LOG     ✓ Compiled in 294ms
-[00:03:52.427] Server  LOG     ✓ Compiled in 416ms
-[00:04:04.247] Server  LOG     ✓ Compiled in 295ms
-[00:05:23.115] Server  LOG     Warning: Setting up fake worker.

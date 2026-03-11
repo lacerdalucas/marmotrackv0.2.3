@@ -21,7 +21,10 @@ export async function criarPedidoComercial(formData: FormData) {
       telefone: formData.get('telefone') as string,
       documento: formData.get('documento') as string,
       endereco_obra: formData.get('endereco_obra') as string,
+      cidade_obra: formData.get('cidade_obra') as string,
       responsavel_obra: formData.get('responsavel_obra') as string,
+      marcenaria_responsavel: formData.get('marcenaria_responsavel') as string,
+      contato_arquitetura: formData.get('contato_arquitetura') as string,
       status_comercial: formData.get('status_comercial') as string,
       data_prometida: formData.get('data_prometida') as string,
       urgencia: formData.get('urgencia') as string,
@@ -67,7 +70,8 @@ export async function criarPedidoComercial(formData: FormData) {
         .from('obras')
         .insert({ 
           cliente_id: clienteId, 
-          endereco: data.endereco_obra || null, 
+          endereco: data.endereco_obra || null,
+          cidade: data.cidade_obra || null,
           responsavel_obra: data.responsavel_obra || null 
         })
         .select('id')
@@ -88,6 +92,8 @@ export async function criarPedidoComercial(formData: FormData) {
         data_prometida: data.data_prometida ? new Date(data.data_prometida).toISOString() : null,
         urgencia: data.urgencia,
         observacoes: data.observacoes || null,
+        marcenaria_responsavel: data.marcenaria_responsavel || null,
+        contato_arquitetura: data.contato_arquitetura || null,
         texto_extraido: isHilImport ? "[EXTRAÇÃO HIL - REVISADO PELO OPERADOR]" : null,
         created_by: user.id
       })
@@ -104,6 +110,28 @@ export async function criarPedidoComercial(formData: FormData) {
 
     if (!novoPedido) {
         return { success: false, message: 'Erro ao gerar o Pedido.' };
+    }
+
+    // 5.3 Bulk insert de itens (se vieram do formulário)
+    const itensJson = formData.get('itens_extraidos') as string;
+    if (itensJson) {
+      try {
+        const itens = JSON.parse(itensJson);
+        if (Array.isArray(itens) && itens.length > 0) {
+          const rows = itens.map((item: any) => ({
+            pedido_id: novoPedido.id,
+            ambiente: item.ambiente || '',
+            material: item.material || '',
+            partes_medidas: item.partes_medidas || [],
+            acabamentos: item.acabamentos || [],
+            servicos: item.servicos || [],
+          }));
+          const { error: itensErr } = await supabase.from('pedidos_itens_v2').insert(rows);
+          if (itensErr) console.error('[criarPedido] Erro ao inserir itens:', itensErr);
+        }
+      } catch (parseErr) {
+        console.error('[criarPedido] Erro ao parsear itens_extraidos:', parseErr);
+      }
     }
 
     // ==========================================
@@ -157,6 +185,72 @@ export async function criarPedidoComercial(formData: FormData) {
   } catch (err) {
     console.error('Erro catastrófico em criarPedidoComercial:', err);
     return { success: false, message: 'Erro inesperado interno do Servidor.' };
+  }
+}
+
+// ==========================================
+// BUSCA COMPLETA COM ITENS
+// ==========================================
+
+export async function getPedidoCompletoById(pedidoId: string) {
+  try {
+    const supabase = await createClient();
+
+    // Buscar pedido com JOINs
+    const { data: pedido, error } = await supabase
+      .from('pedidos_v2')
+      .select(`
+        *,
+        cliente:clientes (nome, telefone, documento),
+        obra:obras (endereco, cidade, responsavel_obra)
+      `)
+      .eq('id', pedidoId)
+      .single();
+
+    if (error || !pedido) {
+      return { success: false, data: null };
+    }
+
+    // Buscar itens separadamente
+    const { data: itens } = await supabase
+      .from('pedidos_itens_v2')
+      .select('*')
+      .eq('pedido_id', pedidoId)
+      .order('created_at', { ascending: true });
+
+    // Montar initialData no formato do formulário
+    const initialData = {
+      numero_orcamento: pedido.numero_orcamento || '',
+      cliente_nome: pedido.cliente?.nome || '',
+      telefone: pedido.cliente?.telefone || '',
+      documento: pedido.cliente?.documento || '',
+      endereco_obra: pedido.obra?.endereco || '',
+      cidade_obra: pedido.obra?.cidade || '',
+      responsavel_obra: pedido.obra?.responsavel_obra || '',
+      marcenaria_responsavel: pedido.marcenaria_responsavel || '',
+      contato_arquitetura: pedido.contato_arquitetura || '',
+      status_comercial: pedido.status_comercial || 'Orçamento',
+      data_prometida: pedido.data_prometida
+        ? new Date(pedido.data_prometida).toISOString().split('T')[0]
+        : '',
+      urgencia: pedido.urgencia || 'Normal',
+      observacoes: pedido.observacoes || '',
+    };
+
+    // Formatar itens para o FieldArray do form
+    const initialItems = (itens || []).map((item: any) => ({
+      ambiente: item.ambiente || '',
+      material: item.material || '',
+      partes_medidas: Array.isArray(item.partes_medidas) ? item.partes_medidas : [],
+      acabamentos: Array.isArray(item.acabamentos) ? item.acabamentos : [],
+      servicos: Array.isArray(item.servicos) ? item.servicos : [],
+    }));
+
+    return { success: true, data: initialData, items: initialItems };
+
+  } catch (err) {
+    console.error('Erro em getPedidoCompletoById:', err);
+    return { success: false, data: null };
   }
 }
 
@@ -249,7 +343,10 @@ export async function atualizarPedidoComercial(pedidoId: string, formData: FormD
       telefone: formData.get('telefone') as string,
       documento: formData.get('documento') as string,
       endereco_obra: formData.get('endereco_obra') as string,
+      cidade_obra: formData.get('cidade_obra') as string,
       responsavel_obra: formData.get('responsavel_obra') as string,
+      marcenaria_responsavel: formData.get('marcenaria_responsavel') as string,
+      contato_arquitetura: formData.get('contato_arquitetura') as string,
       status_comercial: formData.get('status_comercial') as string,
       data_prometida: formData.get('data_prometida') as string,
       urgencia: formData.get('urgencia') as string,
@@ -298,12 +395,14 @@ export async function atualizarPedidoComercial(pedidoId: string, formData: FormD
         if (obraId) {
             await supabase.from('obras').update({
                 endereco: data.endereco_obra || null,
+                cidade: data.cidade_obra || null,
                 responsavel_obra: data.responsavel_obra || null
             }).eq('id', obraId);
         } else {
             const { data: novaObra } = await supabase.from('obras').insert({
                 cliente_id: clienteId,
                 endereco: data.endereco_obra || null,
+                cidade: data.cidade_obra || null,
                 responsavel_obra: data.responsavel_obra || null
             }).select('id').single();
             if (novaObra) obraId = novaObra.id;
@@ -321,6 +420,8 @@ export async function atualizarPedidoComercial(pedidoId: string, formData: FormD
         data_prometida: data.data_prometida ? new Date(data.data_prometida).toISOString() : null,
         urgencia: data.urgencia,
         observacoes: data.observacoes || null,
+        marcenaria_responsavel: data.marcenaria_responsavel || null,
+        contato_arquitetura: data.contato_arquitetura || null,
       })
       .eq('id', pedidoId);
 
@@ -330,6 +431,31 @@ export async function atualizarPedidoComercial(pedidoId: string, formData: FormD
           return { success: false, message: 'Já existe um pedido cadastrado com este número de orçamento.' };
       }
       return { success: false, message: 'Não foi possível atualizar o pedido.' };
+    }
+
+    // ── Itens: Delete + Insert (Replace-All) ──
+    const itensJson = formData.get('itens_extraidos') as string;
+    if (itensJson) {
+      try {
+        const itens = JSON.parse(itensJson);
+        // Deletar itens antigos
+        await supabase.from('pedidos_itens_v2').delete().eq('pedido_id', pedidoId);
+        // Inserir novos
+        if (Array.isArray(itens) && itens.length > 0) {
+          const rows = itens.map((item: any) => ({
+            pedido_id: pedidoId,
+            ambiente: item.ambiente || '',
+            material: item.material || '',
+            partes_medidas: item.partes_medidas || [],
+            acabamentos: item.acabamentos || [],
+            servicos: item.servicos || [],
+          }));
+          const { error: itensErr } = await supabase.from('pedidos_itens_v2').insert(rows);
+          if (itensErr) console.error('[atualizarPedido] Erro ao inserir itens:', itensErr);
+        }
+      } catch (parseErr) {
+        console.error('[atualizarPedido] Erro ao parsear itens_extraidos:', parseErr);
+      }
     }
 
     // Gerar medição se de repente passou a ser Aprovado e ainda não tem medição

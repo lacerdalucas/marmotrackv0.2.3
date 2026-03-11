@@ -1,7 +1,0 @@
-{
-  "/(dashboard)/agenda/page": "app/(dashboard)/agenda/page.js",
-  "/(dashboard)/medicoes/page": "app/(dashboard)/medicoes/page.js",
-  "/(dashboard)/pedidos/[id]/editar/page": "app/(dashboard)/pedidos/[id]/editar/page.js",
-  "/(dashboard)/pedidos/novo/page": "app/(dashboard)/pedidos/novo/page.js",
-  "/(dashboard)/pedidos/page": "app/(dashboard)/pedidos/page.js"
-}

@@ -2,7 +2,7 @@
 
 MarmoTrack é um sistema web abrangente em desenvolvimento para o gerenciamento operacional e comercial de marmorarias. Ele visa unificar em uma única plataforma, desde a criação do orçamento, passando pela aprovação comercial, agendamento de medição (PCP), acompanhamento de projetos e etapa de produção, até a entrega.
 
-## 🚀 Versão Atual: **v0.2.0 - Módulos Comercial e de Medição (PCP)**
+## 🚀 Versão Atual: **v0.2.1 - Reconstrução Arquitetural e CRUD de Itens**
 
 ### Stack Tecnológico
 - **Framework:** Next.js 15 (App Router)
@@ -18,6 +18,8 @@ MarmoTrack é um sistema web abrangente em desenvolvimento para o gerenciamento 
   - Criação de Orçamentos com numeração única sequencial.
   - Conversão de Orçamentos em Pedidos Aprovados.
   - Identificação de Urgência e Datas Prometidas.
+  - **Suporte a Itens Dinâmicos:** CRUD completo de ambientes, peças, acabamentos e serviços por pedido, com persistência via JSONB em `pedidos_itens_v2`.
+  - **Importação Inteligente (PDF):** Parser State Machine para extração automática de dados do ERP, com fallback manual para edição pelo operador.
   - Sistema de "Soft Delete" seguro com auditoria de motivo para descarte de pedidos, reciclando e liberando o número de orçamento original.
 - **Auditoria de Eventos (Event Sourcing):** Timeline detalhada para cada pedido, rastreando mudanças de status, aprovações, edições e exclusões com o respectivo usuário responsável.
 - **Fila de Medições (PCP - Planejamento e Controle da Produção):**
