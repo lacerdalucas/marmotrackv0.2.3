@@ -23,6 +23,7 @@ export default async function AgendaPage() {
             pedidos_v2 (
                 id,
                 numero_orcamento,
+                alertas_producao,
                 obras (endereco, cidade, responsavel_obra),
                 clientes (nome)
             )

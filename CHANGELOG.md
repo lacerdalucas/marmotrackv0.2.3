@@ -2,6 +2,15 @@
 
 Todas as mudanças notáveis no projeto MarmoTrack são documentadas aqui.
 
+## [0.2.3] - 2026-03-12 - Engenharia de Campo & Cadeia de Custódia (PCP Industrial)
+
+### ✨ Validado & Entregue
+- **Módulo de Execução In Loco:** Nova interface reativa (`useFieldArray`) para tablets, permitindo que o medidor ajuste cotas e adicione "Itens Extras" com flag de auditoria.
+- **Motor de Reversão (Custódia):** Implementação da `devolverParaMedicaoAction` permitindo que o projetista devolva a O.P. para o medidor com logs de motivo no JSONB `alertas_producao`.
+- **Telemetria de Divergência:** Injeção de Badges ⚠️ **Extra In Loco** e **Devolvido pelo Projeto** em todo o pipeline (Comercial, projetos, Produção).
+- **Consolidação Técnica:** Refatoração de Queries SQL para Joins relacionais (`clientes`, `obras`) eliminando colunas redundantes na `pedidos_v2`.
+- **Correção Full-Stack:** Fix do erro de status (Concluida vs Concluída) e suporte ao Sync Dynamic APIs do Next.js 15.
+
 ## [0.2.2] - 2026-03-11 - Inteligência Estratégica de Produção (PCP Avançado)
 
 ### ✨ Validado & Entregue

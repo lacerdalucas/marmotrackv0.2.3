@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { MapPin, Edit2, Trash2, X, Loader2, User, AlertTriangle, Calendar, Filter, CheckCircle, Ban, Clock } from 'lucide-react';
+import { MapPin, Edit2, Trash2, X, Loader2, User, AlertTriangle, Calendar, Filter, CheckCircle, Ban, Clock, ClipboardType } from 'lucide-react';
 import { cancelarMedicaoAction, editarAgendamentoAction } from '@/app/actions/agenda';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface Tecnico { id: string; full_name: string; }
 
@@ -179,6 +180,18 @@ export default function AgendaClient({ medicoes, tecnicos }: { medicoes: any[]; 
                                                 <div className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
                                                     <MapPin className="w-3 h-3" /> {pedido?.obras?.endereco || 'Sem endereço'}
                                                 </div>
+                                                
+                                                {/* Badge de Devolução */}
+                                                {pedido?.alertas_producao?.some((a: any) => a.tipo === 'devolucao') && (
+                                                    <div className="mt-2">
+                                                        <span className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                                                            <AlertTriangle className="w-3 h-3" /> Devolvido pelo Projeto
+                                                        </span>
+                                                        <p className="text-[10px] text-amber-500/70 mt-1 italic max-w-xs truncate" title={pedido.alertas_producao.find((a: any) => a.tipo === 'devolucao')?.motivo}>
+                                                            "{pedido.alertas_producao.findLast((a: any) => a.tipo === 'devolucao')?.motivo}"
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
@@ -197,8 +210,12 @@ export default function AgendaClient({ medicoes, tecnicos }: { medicoes: any[]; 
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                         {m.status === 'Agendada' && (
                                             <div className="flex items-center justify-end gap-1">
+                                                <Link href={`/agenda/${m.id}/executar`}
+                                                    className="flex items-center gap-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 font-semibold px-3 py-1.5 rounded-lg border border-blue-500/20 transition-colors mr-2 text-xs" title="Executar Medição (In Loco)">
+                                                    <ClipboardType className="w-3.5 h-3.5" /> <span>Executar</span>
+                                                </Link>
                                                 <button onClick={() => openEditModal(m)}
-                                                    className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/10 rounded-md transition-colors" title="Alterar">
+                                                    className="text-amber-400 hover:text-amber-300 p-2 hover:bg-amber-500/10 rounded-md transition-colors" title="Alterar Data/Hora">
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button onClick={() => openCancelModal(m)}

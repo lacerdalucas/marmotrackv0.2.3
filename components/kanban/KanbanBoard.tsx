@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { AlignLeft, Clock, Activity, Zap, X, Calculator, CalendarClock, ShieldAlert } from 'lucide-react';
+import { AlignLeft, Clock, Activity, Zap, X, Calculator, CalendarClock, ShieldAlert, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { simularImpactoPedidoAction } from '@/app/actions/capacidade';
+import { registrarExclusaoCardKanbanAction } from '@/app/actions/kanban_seguranca';
+import { toast } from 'sonner';
 
 // Tipagem básica para os Mocks
 type Prioridade = 'Baixa' | 'Normal' | 'Urgente';
@@ -21,13 +23,10 @@ interface ColumnProps {
     cards: MockCard[];
     capacidade?: any;
     abreSimulador?: () => void;
+    onDelete?: (id: string, peca: string) => void;
 }
 
-export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any[] }) {
-    const [showSimulador, setShowSimulador] = useState(false);
-
-    // Mocks iniciais para validar o layout
-    const colunas = [
+const mockColunasIniciais = [
         {
             title: 'Fila de Corte',
             cards: [
@@ -42,19 +41,19 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
             cards: [
                 { id: 'op-3', peca: 'Lavatório 80x50', ambiente: 'Banheiro Suíte', material: 'Branco Prime', prioridade: 'Normal' as Prioridade },
             ],
-            capacidade: (capacidadeGeral || []).find((c:any) => c.setor === 'Corte')
+            capacidade: null
         },
         {
             title: 'Acabamento',
             cards: [
                 { id: 'op-4', peca: 'Nicho 40x30', ambiente: 'Banheiro Social', material: 'Travertino Navona', prioridade: 'Baixa' as Prioridade },
             ],
-            capacidade: (capacidadeGeral || []).find((c:any) => c.setor === 'Acabamento')
+            capacidade: null
         },
         {
             title: 'Polimento',
             cards: [],
-            capacidade: (capacidadeGeral || []).find((c:any) => c.setor === 'Polimento')
+            capacidade: null
         },
         {
             title: 'Expedição',
@@ -64,6 +63,35 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
             capacidade: null
         }
     ];
+
+export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any[] }) {
+    const [showSimulador, setShowSimulador] = useState(false);
+    const [boardCols, setBoardCols] = useState(mockColunasIniciais);
+
+    const handleDeleteCard = async (cardId: string, peca: string) => {
+        const motivo = window.prompt(`Motivo da exclusão estrutural para a peça ${peca}:`);
+        if (!motivo) return;
+
+        // Simulando ID de Pedido para a Action registrar (Mock MVP)
+        // O certo na V3 seria 'card.pedido_id'. Usaremos um UUID falso ou fixo só pro db não quebrar se tiver constraint
+        // Vamos usar um ID fake que testamos ou deixar falhar perfeitamente mostrando o Toast de erro.
+        // Simulando que esse Kanban Card tem o ID referencial:
+        toast.promise(
+            registrarExclusaoCardKanbanAction('00000000-0000-0000-0000-000000000000', peca, motivo), 
+            {
+                loading: 'Registrando ocorrência de perda...',
+                success: (res) => {
+                    // Removemos da visualização do Front
+                    setBoardCols(prev => prev.map(col => ({
+                        ...col,
+                        cards: col.cards.filter(c => c.id !== cardId)
+                    })));
+                    return res.success ? res.message : 'Excluído do quadro (Falha ao vincular OP).';
+                },
+                error: 'Falha no servidor.'
+            }
+        );
+    };
 
     return (
         <div className="flex flex-col h-full">
@@ -76,12 +104,14 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
             </div>
 
             <div className="flex h-full w-full space-x-4 overflow-x-auto pb-4">
-                {colunas.map((coluna) => (
+                {boardCols.map((coluna) => (
                     <KanbanColumn 
                         key={coluna.title} 
                         title={coluna.title} 
                         cards={coluna.cards} 
-                        capacidade={coluna.capacidade}
+                        // @ts-ignore
+                        capacidade={coluna.title === 'Corte' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Corte') : coluna.title === 'Acabamento' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Acabamento') : coluna.title === 'Polimento' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Polimento') : null}
+                        onDelete={handleDeleteCard}
                     />
                 ))}
             </div>
@@ -91,7 +121,7 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
     );
 }
 
-function KanbanColumn({ title, cards, capacidade }: ColumnProps) {
+function KanbanColumn({ title, cards, capacidade, onDelete }: ColumnProps) {
     let capIndicator = null;
     let dataEstimada = 'Imediato';
 
@@ -147,14 +177,14 @@ function KanbanColumn({ title, cards, capacidade }: ColumnProps) {
                         <span className="text-xs text-zinc-500">Nenhuma O.P.</span>
                     </div>
                 ) : (
-                    cards.map(card => <KanbanCard key={card.id} card={card} />)
+                    cards.map(card => <KanbanCard key={card.id} card={card} onDelete={onDelete} />)
                 )}
             </div>
         </div>
     );
 }
 
-function KanbanCard({ card }: { card: MockCard }) {
+function KanbanCard({ card, onDelete }: { card: MockCard, onDelete?: (id:string, peca:string) => void }) {
     let badgeColor = "bg-zinc-800 text-zinc-300 border-zinc-700";
 
     if (card.prioridade === 'Urgente') {
@@ -169,9 +199,15 @@ function KanbanCard({ card }: { card: MockCard }) {
                 <h4 className="text-sm font-medium text-zinc-200 leading-tight">
                     {card.peca}
                 </h4>
-                <span className={cn("shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", badgeColor)}>
-                    {card.prioridade}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", badgeColor)}>
+                        {card.prioridade}
+                    </span>
+                    <button onClick={(e) => { e.stopPropagation(); onDelete && onDelete(card.id, card.peca); }} 
+                        className="text-zinc-600 hover:text-red-400 p-0.5 rounded hover:bg-zinc-800 transition-colors" title="Descartar Peça (Perda/Quebra)">
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col gap-1 text-xs text-zinc-500">

@@ -136,6 +136,12 @@ export function PedidosTable({ pedidos, isAdmin = false }: PedidosTableProps) {
                                                 }
                                                 return null;
                                             })()}
+
+                                            {pedido.alerta_medicao_divergente && (
+                                                <span className="flex items-center gap-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded text-[10px] font-bold tracking-wider" title="O Técnico de Medição adicionou itens extras na obra que não constavam no orçamento">
+                                                    <AlertTriangle className="w-3 h-3" /> Extra In Loco
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-4 text-right">
