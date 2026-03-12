@@ -41,13 +41,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div>
                         <div className="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Projetos & PCP</div>
                         <div className="space-y-1">
-                            <Link href="/agenda" className="flex items-center gap-3 py-2.5 px-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all font-medium text-sm">
-                                <CalendarDays className="w-4 h-4" />
-                                Agenda de Medições
-                            </Link>
                             <Link href="/medicoes" className="flex items-center gap-3 py-2.5 px-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all font-medium text-sm">
                                 <Ruler className="w-4 h-4" />
                                 Fila de Medição
+                            </Link>
+                            <Link href="/agenda" className="flex items-center gap-3 py-2.5 px-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all font-medium text-sm">
+                                <CalendarDays className="w-4 h-4" />
+                                Agenda de Medições
                             </Link>
                             <Link href="/projetos" className="flex items-center gap-3 py-2.5 px-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all font-medium text-sm">
                                 <PenTool className="w-4 h-4" />

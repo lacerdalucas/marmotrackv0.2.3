@@ -2,8 +2,10 @@
 
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { ExternalLink, FolderOpen, Calendar, User, Clock, FileText, Edit2, Trash2, AlertTriangle, X } from 'lucide-react';
+import { ExternalLink, FolderOpen, Calendar, User, Clock, FileText, Edit2, Trash2, AlertTriangle, X, Loader2 } from 'lucide-react';
 import { excluirPedidoComercial } from '@/app/actions/pedidos_v2';
+import { recriarMedicaoOrfaAction } from '@/app/actions/medicao';
+import { toast } from 'sonner';
 
 interface PedidosTableProps {
     pedidos: any[];
@@ -128,12 +130,7 @@ export function PedidosTable({ pedidos, isAdmin = false }: PedidosTableProps) {
                                                             
                                                     if (!hasActiveMedicao) {
                                                         return (
-                                                            <div 
-                                                                className="flex items-center justify-center text-amber-500 hover:text-amber-400 cursor-help" 
-                                                                title="Atenção: Este pedido não possui agenda de medição prevista (Ou foi cancelada). Verifique se é necessário reagendar."
-                                                            >
-                                                                <AlertTriangle className="h-4 w-4" />
-                                                            </div>
+                                                            <RecriarMedicaoButton key={`recriar-${pedido.id}`} pedidoId={pedido.id} />
                                                         );
                                                     }
                                                 }
@@ -306,5 +303,34 @@ function DeleteButton({ pedidoId, pedidoIdentificador }: { pedidoId: string, ped
                 </div>
             )}
         </>
+    );
+}
+
+function RecriarMedicaoButton({ pedidoId }: { pedidoId: string }) {
+    const [isPending, startTransition] = useTransition();
+
+    const handleRecriar = () => {
+        if (!confirm('Deseja criar um novo evento de medição para este pedido? Ele retornará para a Fila de Medição.')) return;
+        
+        startTransition(async () => {
+            const res = await recriarMedicaoOrfaAction(pedidoId);
+            if (res.success) {
+                toast.success(res.message);
+            } else {
+                toast.error(res.message);
+            }
+        });
+    };
+
+    return (
+        <button
+            onClick={handleRecriar}
+            disabled={isPending}
+            className="flex items-center justify-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+            title="Atenção: Este pedido não possui agenda de medição. Clique para recriar e enviar para a Fila."
+        >
+            {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
+            Criar Medição
+        </button>
     );
 }

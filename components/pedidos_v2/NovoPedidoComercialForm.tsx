@@ -9,8 +9,8 @@ import { createPedidoComercialSchema, type CreatePedidoComercialInput } from '@/
 import { criarPedidoComercial } from '@/app/actions/pedidos_v2';
 import { previewPdfDataAction } from '@/app/actions/parser';
 import { useRouter } from 'next/navigation';
+import { getCapacidadeProducaoGeralAction } from '@/app/actions/capacidade';
 import type { ExtractedItem } from '@/lib/marmotrack-parser';
-
 // ─── Helpers para itens vazios ───
 function createEmptyPeca() {
     return { peca: '', comprimento: '', largura: '', quantidade: '1' };
@@ -29,6 +29,14 @@ export default function NovoPedidoComercialForm() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverState, setServerState] = useState<{ type: 'error' | 'success' | null, msg: string }>({ type: null, msg: '' });
+    
+    // PCP Estratégico
+    const [pcpCapacity, setPcpCapacity] = useState<{ cor: string, perc: number } | null>(null);
+    React.useEffect(() => {
+        getCapacidadeProducaoGeralAction().then(res => {
+            if (res.success) setPcpCapacity({ cor: res.corGeral || 'green', perc: res.ocupacaoGeralMedia || 0 });
+        });
+    }, []);
 
     // Drag and Drop
     const [visualFile, setVisualFile] = useState<File | null>(null);
@@ -358,9 +366,23 @@ export default function NovoPedidoComercialForm() {
                                 <option value="Alta">Alta</option>
                             </select>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-300">Data Prometida</label>
-                            <input type="date" {...register('data_prometida')} className="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-zinc-200 outline-none focus:border-violet-500 transition-colors [color-scheme:dark]" />
+                        <div className="space-y-1.5 border border-zinc-800/50 p-3 rounded-lg bg-zinc-950/30">
+                            <label className="text-xs font-medium text-zinc-300 flex items-center justify-between">
+                                Data Prometida
+                                {pcpCapacity && (
+                                    <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider font-bold"
+                                        title={pcpCapacity.cor === 'red' ? 'Fábrica operando acima do limite seguro. Riscos de atraso estruturais.' : 'Capacidade Normal ou Carga Alta Controlada'}>
+                                        Farol PCP: <span className={cn("flex items-center gap-1 rounded-full px-1.5 py-0.5", 
+                                            pcpCapacity.cor === 'red' ? 'bg-red-500/20 text-red-500' : pcpCapacity.cor === 'yellow' ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'
+                                        )}>
+                                            <div className={cn("w-1.5 h-1.5 rounded-full", pcpCapacity.cor === 'red' ? 'bg-red-500 animate-pulse' : pcpCapacity.cor === 'yellow' ? 'bg-amber-500' : 'bg-emerald-500')}></div>
+                                            {pcpCapacity.perc}%
+                                        </span>
+                                    </div>
+                                )}
+                            </label>
+                            <input type="date" {...register('data_prometida')} className={cn("w-full h-9 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-zinc-200 outline-none focus:border-violet-500 transition-colors [color-scheme:dark]", pcpCapacity?.cor === 'red' ? 'border-red-500/30 bg-red-500/5 focus:border-red-500' : '')} />
+                            {pcpCapacity?.cor === 'red' && <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" /> PCP ALERTA: Data sugerida inviável.</p>}
                         </div>
                         <div className="space-y-1.5 md:col-span-3">
                             <label className="text-xs font-medium text-zinc-300">Observações</label>

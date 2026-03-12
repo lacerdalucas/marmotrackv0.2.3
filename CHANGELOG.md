@@ -2,6 +2,17 @@
 
 Todas as mudanças notáveis no projeto MarmoTrack são documentadas aqui.
 
+## [0.2.2] - 2026-03-11 - Inteligência Estratégica de Produção (PCP Avançado)
+
+### ✨ Validado & Entregue
+- **Arquitetura de Capacidade Produtiva:** Criação das tabelas `setup_capacidade_setor_v2` e `setup_tempos_padrao_v2` para cálculos paramétricos de tempo hora/homem.
+- **Engine Analítico PCP:** Construção de Server Actions para cruzamento de horas das Ordens de Produção versus capacidade máxima dos setores.
+- **Dashboard Executivo:** Implementação do **Farol de Produção** vibrante global e barras dinâmicas de carga por setor (Corte, Acabamento, Polimento).
+- **Kanban Preditivo:** Injeção de percentuais de ocupação e previsão do *Slot Livre Seguro* nos cabeçalhos de coluna do quadro.
+- **Simulador de Impacto:** Modal aritmético para o comercial/gestão simular o gargalo gerado por um orçamento grande antes de fechá-lo.
+- **Alerta de Viabilidade Comercial:** Integração de uma *Badge Dinâmica* no formulário de Novo Pedido, bloqueando prazos inalcançáveis caso a fábrica supere 95% de carga.
+- **Malha de Segurança (Fix de Pipeline):** Correções na relação `auth.users` que disparava o PGRST200 na Agenda de Medição, além de botões para reviver pedidos orfãos de agenda.
+
 ## [0.2.1] - 2026-03-11 - Reconstrução Arquitetural e CRUD de Itens
 
 ### ✨ Validado & Entregue
