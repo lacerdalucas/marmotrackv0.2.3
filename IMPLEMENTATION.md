@@ -33,10 +33,10 @@ Este documento traça a linha do tempo do desenvolvimento do MarmoTrack, separan
 - Evento de checkout finalizando o processo de Medição (mudando para \`Concluída\` ou \`Frustrada\`).
 - *Integração opcional de calendário (ex: Google Agenda) para sync duplo com os técnicos de rua.*
 
-## 🟡 Fase 5: Módulos de Projeto & Produção (A Fazer - v0.4.0)
+## 🟡 Fase 5: Módulos de Projeto & Produção (Parcialmente Concluída - v0.2.4)
 - **Fila de Projeto / CAD:** Pedidos recém-marcados como "Medição Apta" ou marcados como "Dispensados de Medição" na fase Comercial devem chegar ao painel de Desenhistas.
 - Alocação de Desenhistas, upload de Prancha em PDF, aprovação final do cliente no risco.
-- **Fila de Produção:** Separação de rotinas para Serrada (Corte Mestre), Acabamento (Bancadas prontas) e Controle de Qualidade (Inspeção antes do Envio).
+- **Fila de Produção:** Separação de rotinas com acompanhamento de peças via Kanban Board. Movimentação e atualização integrada do status para as fases da operação (Serrada, Acabamento, Qualidade).
 
 ## 🟡 Fase 6: Almoxarifado / Estoque de Chapas (A Fazer - v0.5.0)
 - Cadastro de fornecedores de chapas e blocos básicos.

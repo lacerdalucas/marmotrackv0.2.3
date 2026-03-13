@@ -1,12 +1,15 @@
 import React from 'react';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
 import { getCapacidadeProducaoGeralAction } from '@/app/actions/capacidade';
+import { getItensEmProducaoAction } from '@/app/actions/kanban';
 import { ShieldAlert } from 'lucide-react';
 
 export const revalidate = 0;
 
 export default async function KanbanPage() {
     const capacidadeRef = await getCapacidadeProducaoGeralAction();
+    const resItens = await getItensEmProducaoAction();
+    const itensReais = resItens.success ? resItens.data : [];
 
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col p-4 sm:p-6 lg:p-8">
@@ -27,8 +30,10 @@ export default async function KanbanPage() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-                {/* Usamos o Client Component para a UI interativa de Drag & Drop (Mock por enquanto) */}
-                <KanbanBoard capacidadeGeral={capacidadeRef.estatisticas || []} />
+                <KanbanBoard 
+                    capacidadeGeral={capacidadeRef.estatisticas || []} 
+                    itensIniciais={itensReais}
+                />
             </div>
         </div>
     );

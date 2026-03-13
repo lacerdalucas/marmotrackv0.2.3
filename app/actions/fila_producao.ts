@@ -52,7 +52,7 @@ export async function enviarParaKanbanDeCorteAction(pedidoId: string) {
     try {
         const supabase = await createClient();
 
-        const { error } = await supabase
+        const { error: pedErr } = await supabase
             .from('pedidos_v2')
             .update({ 
                 etapa_fabrica: 'em_producao',
@@ -60,7 +60,15 @@ export async function enviarParaKanbanDeCorteAction(pedidoId: string) {
             })
             .eq('id', pedidoId);
 
-        if (error) throw error;
+        if (pedErr) throw pedErr;
+
+        // Inicializa todas as peças do pedido na "Fila de Corte" do Kanban
+        const { error: itemErr } = await supabase
+            .from('pedidos_itens_v2')
+            .update({ status_producao: 'fila_corte' })
+            .eq('pedido_id', pedidoId);
+
+        if (itemErr) throw itemErr;
 
         revalidatePath('/fila_producao');
         revalidatePath('/kanban'); // Recarrega o kanban board.

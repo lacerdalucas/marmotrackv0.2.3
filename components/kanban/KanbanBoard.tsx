@@ -5,88 +5,74 @@ import { AlignLeft, Clock, Activity, Zap, X, Calculator, CalendarClock, ShieldAl
 import { cn } from '@/lib/utils';
 import { simularImpactoPedidoAction } from '@/app/actions/capacidade';
 import { registrarExclusaoCardKanbanAction } from '@/app/actions/kanban_seguranca';
+import { moverPecaKanbanAction } from '@/app/actions/kanban';
+import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
-// Tipagem básica para os Mocks
-type Prioridade = 'Baixa' | 'Normal' | 'Urgente';
-
-interface MockCard {
+// Tipagem para os itens reais
+interface KanbanItem {
     id: string;
     peca: string;
     ambiente: string;
     material: string;
-    prioridade: Prioridade;
+    status_producao: string;
+    prioridade: 'Baixa' | 'Normal' | 'Urgente';
+    numero_orcamento: string;
+    cliente_nome: string;
+    codigo_qr?: string;
+    medidas: any[];
 }
 
 interface ColumnProps {
+    id: string;
     title: string;
-    cards: MockCard[];
+    cards: KanbanItem[];
     capacidade?: any;
-    abreSimulador?: () => void;
+    onMove?: (cardId: string, toCol: string) => void;
     onDelete?: (id: string, peca: string) => void;
 }
 
-const mockColunasIniciais = [
-        {
-            title: 'Fila de Corte',
-            cards: [
-                { id: 'op-1', peca: 'Bancada 200x60', ambiente: 'Cozinha', material: 'Preto São Gabriel', prioridade: 'Normal' as Prioridade },
-                { id: 'op-2', peca: 'Ilha 150x90', ambiente: 'Cozinha', material: 'Preto São Gabriel', prioridade: 'Urgente' as Prioridade },
-            ],
-            // Setor null para fila
-            capacidade: null
-        },
-        {
-            title: 'Corte',
-            cards: [
-                { id: 'op-3', peca: 'Lavatório 80x50', ambiente: 'Banheiro Suíte', material: 'Branco Prime', prioridade: 'Normal' as Prioridade },
-            ],
-            capacidade: null
-        },
-        {
-            title: 'Acabamento',
-            cards: [
-                { id: 'op-4', peca: 'Nicho 40x30', ambiente: 'Banheiro Social', material: 'Travertino Navona', prioridade: 'Baixa' as Prioridade },
-            ],
-            capacidade: null
-        },
-        {
-            title: 'Polimento',
-            cards: [],
-            capacidade: null
-        },
-        {
-            title: 'Expedição',
-            cards: [
-                { id: 'op-5', peca: 'Soleiras (5 u.)', ambiente: 'Geral', material: 'Preto São Gabriel', prioridade: 'Normal' as Prioridade },
-            ],
-            capacidade: null
-        }
-    ];
+const COLUNAS_SISTEMA = [
+    { id: 'fila_corte', title: 'Fila de Corte' },
+    { id: 'corte', title: 'Corte' },
+    { id: 'acabamento', title: 'Acabamento' },
+    { id: 'polimento', title: 'Polimento' },
+    { id: 'expedicao', title: 'Expedição' },
+];
 
-export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any[] }) {
+export default function KanbanBoard({ capacidadeGeral, itensIniciais = [] }: { capacidadeGeral?: any[], itensIniciais?: any[] }) {
     const [showSimulador, setShowSimulador] = useState(false);
-    const [boardCols, setBoardCols] = useState(mockColunasIniciais);
+    const [cards, setCards] = useState<KanbanItem[]>(itensIniciais);
+    const [isMoving, setIsMoving] = useState<string | null>(null);
+
+    const handleMoveCard = async (cardId: string, toCol: string) => {
+        setIsMoving(cardId);
+        
+        // Update otimista no front
+        setCards(prev => prev.map(c => c.id === cardId ? { ...c, status_producao: toCol } : c));
+
+        const res = await moverPecaKanbanAction(cardId, toCol);
+        if (res.success) {
+            toast.success('Movimentação persistida.');
+        } else {
+            toast.error('Erro ao salvar no banco.');
+            // Reverter em caso de erro
+            setCards(prev => prev.map(c => c.id === cardId ? { ...c, status_producao: cards.find(x => x.id === cardId)?.status_producao || 'fila_corte' } : c));
+        }
+        setIsMoving(null);
+    };
 
     const handleDeleteCard = async (cardId: string, peca: string) => {
         const motivo = window.prompt(`Motivo da exclusão estrutural para a peça ${peca}:`);
         if (!motivo) return;
 
-        // Simulando ID de Pedido para a Action registrar (Mock MVP)
-        // O certo na V3 seria 'card.pedido_id'. Usaremos um UUID falso ou fixo só pro db não quebrar se tiver constraint
-        // Vamos usar um ID fake que testamos ou deixar falhar perfeitamente mostrando o Toast de erro.
-        // Simulando que esse Kanban Card tem o ID referencial:
         toast.promise(
-            registrarExclusaoCardKanbanAction('00000000-0000-0000-0000-000000000000', peca, motivo), 
+            registrarExclusaoCardKanbanAction(cardId, peca, motivo), 
             {
                 loading: 'Registrando ocorrência de perda...',
                 success: (res) => {
-                    // Removemos da visualização do Front
-                    setBoardCols(prev => prev.map(col => ({
-                        ...col,
-                        cards: col.cards.filter(c => c.id !== cardId)
-                    })));
-                    return res.success ? res.message : 'Excluído do quadro (Falha ao vincular OP).';
+                    setCards(prev => prev.filter(c => c.id !== cardId));
+                    return res.success ? res.message : 'Excluído do quadro.';
                 },
                 error: 'Falha no servidor.'
             }
@@ -104,14 +90,15 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
             </div>
 
             <div className="flex h-full w-full space-x-4 overflow-x-auto pb-4">
-                {boardCols.map((coluna) => (
+                {COLUNAS_SISTEMA.map((coluna) => (
                     <KanbanColumn 
-                        key={coluna.title} 
+                        key={coluna.id} 
+                        id={coluna.id}
                         title={coluna.title} 
-                        cards={coluna.cards} 
-                        // @ts-ignore
+                        cards={cards.filter(c => c.status_producao === coluna.id)} 
                         capacidade={coluna.title === 'Corte' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Corte') : coluna.title === 'Acabamento' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Acabamento') : coluna.title === 'Polimento' ? (capacidadeGeral || []).find((c:any) => c.setor === 'Polimento') : null}
                         onDelete={handleDeleteCard}
+                        onMove={handleMoveCard}
                     />
                 ))}
             </div>
@@ -121,11 +108,24 @@ export default function KanbanBoard({ capacidadeGeral }: { capacidadeGeral?: any
     );
 }
 
-function KanbanColumn({ title, cards, capacidade, onDelete }: ColumnProps) {
+function KanbanColumn({ id, title, cards, capacidade, onDelete, onMove }: ColumnProps) {
     let capIndicator = null;
     let dataEstimada = 'Imediato';
 
+    // Para um DnD real sem biblioteca, usamos onDragOver e onDrop
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault(); // Necessário para permitir o drop
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        const cardId = e.dataTransfer.getData('cardId');
+        if (cardId && onMove) {
+            onMove(cardId, id);
+        }
+    };
+
     if (capacidade) {
+        // ... (lógica de capacidade permanece igual)
         const perc = capacidade.percentual || 0;
         let corBg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
         let corDot = 'bg-emerald-500';
@@ -160,7 +160,10 @@ function KanbanColumn({ title, cards, capacidade, onDelete }: ColumnProps) {
     }
 
     return (
-        <div className="flex w-80 shrink-0 flex-col rounded-lg bg-zinc-900 border border-zinc-800 h-full">
+        <div 
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className="flex w-80 shrink-0 flex-col rounded-lg bg-zinc-900 border border-zinc-800 h-full">
             <div className="flex flex-col p-4 border-b border-zinc-800 bg-zinc-950/40 rounded-t-lg">
                 <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-zinc-200 tracking-tight">{title}</h3>
@@ -184,8 +187,12 @@ function KanbanColumn({ title, cards, capacidade, onDelete }: ColumnProps) {
     );
 }
 
-function KanbanCard({ card, onDelete }: { card: MockCard, onDelete?: (id:string, peca:string) => void }) {
+function KanbanCard({ card, onDelete }: { card: KanbanItem, onDelete?: (id:string, peca:string) => void }) {
     let badgeColor = "bg-zinc-800 text-zinc-300 border-zinc-700";
+
+    const handleDragStart = (e: React.DragEvent) => {
+        e.dataTransfer.setData('cardId', card.id);
+    };
 
     if (card.prioridade === 'Urgente') {
         badgeColor = "bg-red-500/10 text-red-400 border-red-500/20";
@@ -194,15 +201,24 @@ function KanbanCard({ card, onDelete }: { card: MockCard, onDelete?: (id:string,
     }
 
     return (
-        <div className="group relative flex cursor-grab flex-col gap-3 rounded-md border border-zinc-700 bg-zinc-950 p-4 shadow-sm hover:border-violet-500/50 active:cursor-grabbing">
+        <div 
+            draggable 
+            onDragStart={handleDragStart}
+            className="group relative flex cursor-grab flex-col gap-3 rounded-md border border-zinc-700 bg-zinc-950 p-4 shadow-sm hover:border-blue-500/50 active:cursor-grabbing transition-all hover:shadow-lg hover:shadow-blue-500/5">
             <div className="flex items-start justify-between gap-2">
-                <h4 className="text-sm font-medium text-zinc-200 leading-tight">
-                    {card.peca}
-                </h4>
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-mono bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">#{card.numero_orcamento}</span>
+                        <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", badgeColor)}>
+                            {card.prioridade}
+                        </span>
+                    </div>
+                    <h4 className="text-sm font-bold text-zinc-200 leading-tight">
+                        {card.peca}
+                    </h4>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-medium truncate w-40">{card.cliente_nome}</p>
+                </div>
                 <div className="flex items-center gap-2 shrink-0">
-                    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", badgeColor)}>
-                        {card.prioridade}
-                    </span>
                     <button onClick={(e) => { e.stopPropagation(); onDelete && onDelete(card.id, card.peca); }} 
                         className="text-zinc-600 hover:text-red-400 p-0.5 rounded hover:bg-zinc-800 transition-colors" title="Descartar Peça (Perda/Quebra)">
                         <Trash2 className="w-3.5 h-3.5" />
@@ -210,15 +226,34 @@ function KanbanCard({ card, onDelete }: { card: MockCard, onDelete?: (id:string,
                 </div>
             </div>
 
-            <div className="flex flex-col gap-1 text-xs text-zinc-500">
-                <div className="flex items-center gap-1.5">
-                    <AlignLeft className="h-3.5 w-3.5 text-zinc-600" />
-                    <span>{card.ambiente}</span>
+            <div className="flex items-center justify-between border-t border-zinc-800/50 pt-3">
+                <div className="flex flex-col gap-1 text-[11px] text-zinc-500">
+                    <div className="flex items-center gap-1.5">
+                        <AlignLeft className="h-3 w-3 text-zinc-600" />
+                        <span className="truncate w-32">{card.ambiente}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
+                        <span className="text-zinc-400 italic font-medium">{card.material}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-zinc-700" />
-                    <span className="text-zinc-400">{card.material}</span>
-                </div>
+
+                {card.codigo_qr && (
+                    <div className="bg-white p-1 rounded shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
+                        <QRCodeSVG value={card.codigo_qr} size={32} />
+                    </div>
+                )}
+            </div>
+
+            {/* Tooltip de Medidas ao passar o mouse */}
+            <div className="hidden group-hover:block absolute top-full left-0 right-0 z-10 mt-1 bg-zinc-900 border border-zinc-800 p-2 rounded shadow-xl text-[10px]">
+                <p className="text-zinc-400 font-bold mb-1 uppercase tracking-widest">Dimensões:</p>
+                {card.medidas?.length > 0 ? card.medidas.map((m:any, i:number) => (
+                    <div key={i} className="flex justify-between text-zinc-300 border-b border-zinc-800 py-0.5 last:border-0 font-mono">
+                        <span>{m.peca}</span>
+                        <span>{m.comprimento} x {m.largura} (x{m.quantidade})</span>
+                    </div>
+                )) : <span className="text-zinc-600 italic">Sem medidas detalhadas</span>}
             </div>
         </div>
     );

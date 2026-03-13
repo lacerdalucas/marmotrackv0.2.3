@@ -2,6 +2,13 @@
 
 Todas as mudanças notáveis no projeto MarmoTrack são documentadas aqui.
 
+## [0.2.4] - 2026-03-13 - Controle de Produção e Kanban de Peças
+
+### ✨ Validado & Entregue
+- **Kanban de Produção:** Implementação de um painel interativo (`KanbanBoard`) para acompanhamento em tempo real do status das peças em chão de fábrica.
+- **Gestão de Status:** Criação de modelagem (`status_pecas_kanban`) e Server Actions integradas (`fila_producao.ts`, `kanban.ts`) permitindo o rastreamento fluido pelas etapas da operação.
+- **Integração Visual:** Interface atualizada para prover clareza ao gestor da produção sobre os gargalos em painéis organizados.
+
 ## [0.2.3] - 2026-03-12 - Engenharia de Campo & Cadeia de Custódia (PCP Industrial)
 
 ### ✨ Validado & Entregue
